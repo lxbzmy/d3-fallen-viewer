@@ -140,7 +140,7 @@ function onTag(tag){
 	hero_code = tag.replace("#","-");	
 	$.ajax({
 	    type:"GET",
-	    url:profileAPI.replace('${host_type}',host_type).replace('${hero_code}',hero_code),
+	    url:profileAPI.replace(/\$\{host_type\}/g,host_type).replace(/\$\{hero_code\}/g,hero_code),
 	    dataType: 'jsonp',
 	    success:function (data) {
 	    	onData(data);
@@ -242,9 +242,9 @@ function onFallenHero(idx,fallen){
 	$('#profile-body>div').attr('class',fallen.class + (fallen.gender ==0?'-mail':'-female'));
 	
 	 var html=	profileSheetTpl
-	.replace('${name}',fallen.name)
-	.replace('${level}',fallen.level)
-	.replace('${class}',fallen.class);
+	.replace(/\$\{name\}/g,fallen.name)
+	.replace(/\$\{level\}/g,fallen.level)
+	.replace(/\$\{class\}/g,fallen.class);
 	$('div.profile-sheet').html(html);
 	
 	$gear = $('div.profile-sheet ul.gear-slots');
@@ -263,22 +263,22 @@ function onFallenHero(idx,fallen){
 	
 	
 	html = profileLowerTpl
-	.replace('${life}',fallen.stats.life )
-	.replace('${damage}',fallen.stats.damage )
-	.replace('${armor}',fallen.stats.armor )
-	.replace('${strength}',fallen.stats.strength )
-	.replace('${dexterity}',fallen.stats.dexterity )
-	.replace('${vitality}',fallen.stats.vitality )
-	.replace('${intelligence}',fallen.stats.intelligence )
-	.replace('${physicalResist}',fallen.stats.physicalResist )
-	.replace('${fireResist}',fallen.stats.fireResist )
-	.replace('${coldResist}',fallen.stats.coldResist )
-	.replace('${lightningResist}',fallen.stats.lightningResist )
-	.replace('${poisonResist}',fallen.stats.poisonResist )
-	.replace('${arcaneResist}',fallen.stats.arcaneResist )
-	.replace('${damageIncrease}',fallen.stats.damageIncrease )
-	.replace('${critChance}',fallen.stats.critChance )
-	.replace('${damageReduction}',fallen.stats.damageReduction );
+	.replace(/\$\{life\}/g,fallen.stats.life )
+	.replace(/\$\{damage\}/g,fallen.stats.damage )
+	.replace(/\$\{armor\}/g,fallen.stats.armor )
+	.replace(/\$\{strength\}/g,fallen.stats.strength )
+	.replace(/\$\{dexterity\}/g,fallen.stats.dexterity )
+	.replace(/\$\{vitality\}/g,fallen.stats.vitality )
+	.replace(/\$\{intelligence\}/g,fallen.stats.intelligence )
+	.replace(/\$\{physicalResist\}/g,fallen.stats.physicalResist )
+	.replace(/\$\{fireResist\}/g,fallen.stats.fireResist )
+	.replace(/\$\{coldResist\}/g,fallen.stats.coldResist )
+	.replace(/\$\{lightningResist\}/g,fallen.stats.lightningResist )
+	.replace(/\$\{poisonResist\}/g,fallen.stats.poisonResist )
+	.replace(/\$\{arcaneResist\}/g,fallen.stats.arcaneResist )
+	.replace(/\$\{damageIncrease\}/g,fallen.stats.damageIncrease )
+	.replace(/\$\{critChance\}/g,fallen.stats.critChance )
+	.replace(/\$\{damageReduction\}/g,fallen.stats.damageReduction );
 
 	$('div.profile-lower').html(html);
 	
@@ -291,7 +291,7 @@ function onFallenHero(idx,fallen){
 function buildItemHtml(where,item){
 	
 	
-	var tpl = '<a class="slot-link" href="#" data-d3tooltip=${tooltipParams}">'+
+	var tpl = '<a class="slot-link" href="#" onclick="alert(1);onItemClick(\'${tooltipParams}\');return false;" data-d3tooltip=${tooltipParams}">'+
 				'<span class="d3-icon d3-icon-item d3-icon-item-${displayColor}">'+
 				'	<span class="icon-item-gradient">'+
 				'		<span class="icon-item-inner"></span>'+
@@ -305,10 +305,10 @@ function buildItemHtml(where,item){
 			'</a>';
 	if(item){
 		
-		var s =  tpl.replace('${tooltipParams}',item.tooltipParams)
-		.replace('${icon}',item.icon)
-		.replace('${name}',item.name)
-		.replace('${displayColor}',item.displayColor)
+		var s =  tpl.replace(/\$\{tooltipParams\}/g,item.tooltipParams)
+		.replace(/\$\{icon\}/g,item.icon)
+		.replace(/\$\{name\}/g,item.name)
+		.replace(/\$\{displayColor\}/g,item.displayColor)
 		return s;
 		;
 	}else{
@@ -321,14 +321,20 @@ function buildItemHtml(where,item){
 
 //sub function for onFallenHero
 function buildItemLabel(where,item){
-	var tpl = '<a href="#" data-d3tooltip="${tooltipParams}" class="label-link d3-color-${displayColor}">'+
+	var tpl = '<a href="#" onclick="onItemClick(\'${tooltipParams}\');return false;" data-d3tooltip="${tooltipParams}" class="label-link d3-color-${displayColor}">'+
 					'<span class="item-name">${name}</span>'+
 			'</a>';
-	var s =  tpl.replace('${tooltipParams}',item.tooltipParams)
-		.replace('${icon}',item.icon)
-		.replace('${name}',item.name)
-		.replace('${displayColor}',item.displayColor)
+	var s =  tpl.replace(/\$\{tooltipParams\}/g,item.tooltipParams)
+		.replace(/\$\{icon\}/g,item.icon)
+		.replace(/\$\{name\}/g,item.name)
+		.replace(/\$\{displayColor\}/g,item.displayColor)
 		return s;
+}
+
+//callback function for equip item click
+//@param itemid
+function onItemClick(id){
+	prompt("u can use item id in bbs,装备编号",id);
 }
 
 //patch to work
