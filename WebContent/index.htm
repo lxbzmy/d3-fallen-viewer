@@ -181,7 +181,7 @@ function buildList(data){
 		if(data.fallenHeroes == undefined) data.fallenHeroes = [];
 		
 		function ct(idx,item){
-			var class_name = item.class + (item.gender ==0?'-mail':'-female');
+			var class_name = item.class + (item.gender ==0?'-male':'-female');
 			var li = tpl.replace(/\$\{className\}/g,class_name)
 				.replace(/\$\{heroId\}/g,item.heroId)
 				.replace(/\$\{idx\}/g,idx)
@@ -199,15 +199,21 @@ function buildList(data){
 		
 		//link tab event
 		$ul.find('a').click(function(){
+			try{
 			var a = this;
-			console.log(a);
+			//console.log(a);
 			
 			var idx = a.getAttribute('data-tooltip').match(/\d+$/)[0];
 			
 			$('.hero-tabs li a.hardcore-active').removeClass(' hardcore-active');
 			$('.hero-tabs li:eq('+idx+') a').addClass(' hardcore-active');
 			onFallenHero(idx,data.fallenHeroes[idx]);
+			}catch(e){
+			console.log(e);
+			}finally{
 			return false;
+			}
+			
 			})
 }
 
@@ -340,6 +346,11 @@ function buildItemHtml(where,item){
 
 //sub function for onFallenHero
 function buildItemLabel(where,item){
+	if(typeof(item)=='undefined'){
+		return '<span class="d3-icon d3-icon-item empty-icon" data-tooltip="">'+
+				'<span class="icon-item-inner"></span>'+
+			'</span>'
+	}
 	var tpl = '<a href="#" onclick="onItemClick(\'${tooltipParams}\');return false;" data-d3tooltip="${tooltipParams}" class="label-link d3-color-${displayColor}">'+
 					'<span class="item-name">${name}</span>'+
 			'</a>';
@@ -1243,7 +1254,7 @@ function relinkTooltip(){
 		<ul class="attributes-core">
                 <li data-tooltip=" class="tip"><span class="label">精英怪击杀总数</span><span class="value">${elites}</span>
 				</li>
-				<li data-tooltip="" class="tip"><span class="label" style="width:80px">牺牲时间</span><span class="value" style="width:154px;">${time}</span></li>
+				<li data-tooltip="" class="tip"><span class="label" style="width:70px">牺牲时间</span><span class="value" style="width:164px;">${time}</span></li>
                 <li class="clear"></li>
 		</ul>
 
