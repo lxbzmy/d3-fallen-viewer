@@ -261,6 +261,8 @@ function onFallenHero(idx,fallen){
 	      $labels.children('li.slot-'+v).html(buildItemLabel(v,items[v]));		
 		});
 	
+	var time = new Date()
+	time.setTime(fallen.death.time*1000)
 	
 	html = profileLowerTpl
 	.replace(/\$\{life\}/g,fallen.stats.life )
@@ -276,12 +278,29 @@ function onFallenHero(idx,fallen){
 	.replace(/\$\{lightningResist\}/g,fallen.stats.lightningResist )
 	.replace(/\$\{poisonResist\}/g,fallen.stats.poisonResist )
 	.replace(/\$\{arcaneResist\}/g,fallen.stats.arcaneResist )
-	.replace(/\$\{damageIncrease\}/g,fallen.stats.damageIncrease )
-	.replace(/\$\{critChance\}/g,fallen.stats.critChance )
-	.replace(/\$\{damageReduction\}/g,fallen.stats.damageReduction );
+	.replace(/\$\{damageIncrease\}/g,Number(fallen.stats.damageIncrease*100).toFixed(2)+'%' )
+	.replace(/\$\{critChance\}/g,Number(fallen.stats.critChance*100).toFixed(2)+'%' )
+	.replace(/\$\{damageReduction\}/g,Number(fallen.stats.damageReduction*100).toFixed(2)+ '%')
+	.replace(/\$\{elites\}/g,fallen.kills.elites )
+	.replace(/\$\{time\}/g,time.toLocaleString())
+	
+	;
 
 	$('div.profile-lower').html(html);
 	
+	var resourceClassMap = {'demon-hunter':'resource-hatred-discipline',
+					'wizard':'resource-arcanum',
+					'barbarian-male':'resource-fury',
+					'monk':'resource-spirit',
+					'witch-doctor':'resource-mana'}
+	var resourceNameMap = {'demon-hunter':'憎恨/戒律',
+					'wizard':'秘能',
+					'barbarian-male':'怒气',
+					'monk':'精气',
+					'witch-doctor':'法力'}
+	
+	$('ul.resources li:first span.resource-icon').attr('class','resource-icon '+resourceClassMap[fallen.class]);
+	$('ul.resources li:first span.label').html(resourceNameMap[fallen.class]);
 	//re bind dynamic tooltip
 	relinkTooltip();
 //	$('div.profile-sheet h2').text(fallen.name);
@@ -604,7 +623,7 @@ function relinkTooltip(){
 			<div class="profile-overview" id="overview">
 
 
-    <div class="page-section skills" style="visibility:hidden">
+    <div class="page-section skills" style="visibility:hidden;display:none;">
             <div class="section-header ">
                 	<h3 class="category ">技能</h3>
 
@@ -1064,22 +1083,22 @@ function relinkTooltip(){
 
     <div id="tooltip-strength-hero" style="display: none;">
 		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">力量：<span class="d3-color-green"><span class="value">266</span></span></span><br /> 野蠻人的主要屬性。<br /> 使野蠻人的所有傷害提高 <span class="d3-color-green"><span class="value">270.00%</span></span>。<br /> 使護甲值提高 <span class="d3-color-green"><span class="value">266</span></span> 點。</p>
+			<p><span class="d3-color-gold">力量：<span class="d3-color-green"><span class="value">${strength}</span></span></span><br /> 野蠻人的主要屬性。<br /> 使野蠻人的所有傷害提高 <span class="d3-color-green"><span class="value">270.00%</span></span>。<br /> 使護甲值提高 <span class="d3-color-green"><span class="value">${strength}</span></span> 點。</p>
 		</div>
     </div>
     <div id="tooltip-dexterity-hero" style="display: none;">
 		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">敏捷：<span class="d3-color-green"><span class="value">1752</span></span></span><br /> 狩魔獵人和武僧的主要屬性。<br /> 使狩魔獵人和武僧的所有傷害提高 <span class="d3-color-green"><span class="value">1800.00%</span></span>。<br /> 使閃躲機率提高 <span class="d3-color-green"><span class="value">37.52%</span></span>。</p>
+			<p><span class="d3-color-gold">敏捷：<span class="d3-color-green"><span class="value">${dexterity}</span></span></span><br /> 狩魔獵人和武僧的主要屬性。<br /> 使狩魔獵人和武僧的所有傷害提高 <span class="d3-color-green"><span class="value">1800.00%</span></span>。<br /> 使閃躲機率提高 <span class="d3-color-green"><span class="value">37.52%</span></span>。</p>
 		</div>
     </div>
     <div id="tooltip-intelligence-hero" style="display: none;">
 		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">智力：<span class="d3-color-green"><span class="value">241</span></span></span><br /> 巫醫和秘術師的主要屬性。<br /> 使巫醫和秘術師的所有傷害提高 <span class="d3-color-green"><span class="value">240.00%</span></span>。<br /> 使抗性提高 <span class="d3-color-green"><span class="value">20.0</span></span> 點。</p>
+			<p><span class="d3-color-gold">智力：<span class="d3-color-green"><span class="value">${intelligence}</span></span></span><br /> 巫醫和秘術師的主要屬性。<br /> 使巫醫和秘術師的所有傷害提高 <span class="d3-color-green"><span class="value">240.00%</span></span>。<br /> 使抗性提高 <span class="d3-color-green"><span class="value">20.0</span></span> 點。</p>
 		</div>
     </div>
     <div id="tooltip-vitality-hero" style="display: none;">
 		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">體能：<span class="d3-color-green"><span class="value">527</span></span></span><br /> 提高生命值，使你承受更多傷害才會死亡。<br /> 每一點體能可使生命值提高 <span class="d3-color-green"><span class="value">35</span></span> 點。</p>
+			<p><span class="d3-color-gold">體能：<span class="d3-color-green"><span class="value">${vitality}</span></span></span><br /> 提高生命值，使你承受更多傷害才會死亡。<br /> 每一點體能可使生命值提高 <span class="d3-color-green"><span class="value">35</span></span> 點。</p>
 		</div>
     </div>
     <div id="tooltip-armor-hero" style="display: none;">
@@ -1099,10 +1118,10 @@ function relinkTooltip(){
     </div>
 
 			<div id="tooltip-maxPrimaryResource-hero" style="display: none;">
-				<div class="profile-tooltip">
+				<!--<div class="profile-tooltip">
 					<p><span class="d3-color-gold">憎恨：<span class="value">150/150</span></span><br />恢復迅速的能量，可供狩魔獵人施展攻擊技能。</p>
 					<p><span class="d3-color-gold">戒律：<span class="value">30/30</span></span><br />恢復緩慢的能量，可供狩魔獵人施展戰術類技能。</p>
-				</div>
+				</div>-->
 		    </div>
 
 
@@ -1141,11 +1160,11 @@ function relinkTooltip(){
 
 		<ul class="resources">
 				<li class="resource tip" data-tooltip="#tooltip-maxPrimaryResource-hero">
-					<span class="resource-icon resource-hatred-discipline">
-						<span class="value">150<br />30</span>
+					<span class="resource-icon">
+						<span class="value">????</span>
 					</span>
 					<span class="label-wrapper">
-						<span class="label">憎恨/ 戒律</span>
+						<span class="label"></span>
 					</span>
 				</li>
 
@@ -1157,6 +1176,78 @@ function relinkTooltip(){
 				<span class="label-wrapper"><span class="label">生命值</span></span>
 			</li>
 		</ul>
+
+        </div>
+    </div>
+    <div class="page-section attributes">
+            <div class="section-header ">
+                	<h3 class="category ">屬性2</h3>
+
+
+            </div>
+
+        <div class="section-body">
+
+   
+
+			
+
+
+		<ul class="attributes-core">
+                <li  class="tip"><span class="label">伤害减免</span><span class="value">${damageReduction}</span>
+				</li>
+				<li  class="tip"><span class="label">物理抗性</span><span class="value">${physicalResist}</span>
+				</li>
+				<li  class="tip"><span class="label">冰寒抗性</span><span class="value">${coldResist}</span>
+				</li>
+				<li  class="tip"><span class="label">火焰抗性</span><span class="value">${fireResist}</span>
+				</li>
+				<li  class="tip"><span class="label">电击抗性</span><span class="value">${lightningResist}</span>
+				</li>
+                <li  class="tip"><span class="label">毒素抗性</span><span class="value">${poisonResist}</span>
+				</li>
+                <li  class="tip"><span class="label">秘法抗性</span><span class="value">${arcaneResist}</span>
+				</li>
+			<li class="clear"></li>
+		</ul>
+
+		<ul class="attributes-core secondary">
+			<!--<li data-tooltip="#tooltip-armor-hero" class="tip">
+				<span class="label">伤害加成</span>
+				<span class="value">${damageIncrease}</span>
+			</li>-->
+
+			<li data-tooltip="#tooltip-dps-hero" class="tip">
+				<span class="label">暴率</span>
+				<span class="value">${critChance}</span>
+			</li>
+			<li class="clear"></li>
+		</ul>
+
+		
+
+        </div>
+    </div>
+    <div class="page-section attributes" style="margin-right:0">
+            <div class="section-header ">
+                	<h3 class="category ">屬性3</h3>
+
+
+            </div>
+
+        <div class="section-body">
+
+   
+
+
+		<ul class="attributes-core">
+                <li data-tooltip=" class="tip"><span class="label">精英怪击杀总数</span><span class="value">${elites}</span>
+				</li>
+				<li data-tooltip="" class="tip"><span class="label" style="width:80px">牺牲时间</span><span class="value" style="width:154px;">${time}</span></li>
+                <li class="clear"></li>
+		</ul>
+
+		
 
         </div>
     </div>
