@@ -119,15 +119,29 @@ function　get_hero_data(){
 called when data loaded from battlenet.
 */
 function onData(data){
-	console.log(data);
+//	console.log(data);
 	document.data = data;
-	buildList(data);
-	//select first hero;
-	if(data.fallenHeroes && data.fallenHeroes.length>0){
-		$('.hero-tabs li:first-child a').addClass(' hardcore-active');
-         onFallenHero(0,data.fallenHeroes[0]);
+	
+	if('code' in data){
+		$('#message').html(data.code+":"+data.reason);
+	}else{
+		
+		//build select list and auto select first hero;
+		if(data.fallenHeroes && data.fallenHeroes.length>0){
+
+			buildList(data);
+			
+			$('.hero-tabs li:first-child a').addClass(' hardcore-active');
+			 onFallenHero(0,data.fallenHeroes[0]);
+		}else{
+			$('#message').html('No fallen heros in profile.');
+		}
+		updateContextLink(data);
 	}
-	updateContextLink(data);
+	
+	
+	
+	
 	//place your callback below.
 
 }
@@ -404,11 +418,11 @@ function relinkTooltip(){
 			<a href="/d3/zh/profile/${profileUrl}/">
 					<h2 class="header "> <span>#</span></h2>
 
-			</a>
+			</a><span id="message"></span>
 	<span class="clear"><!-- --></span>
 		</div>
 	<ul class="tab-menu ">
-				<li class="menu-career ">
+				<!--<li class="menu-career ">
 					<a href="/d3/zh/profile/${profileUrl}/">
 					   <span>冒險經歷</span>
 					</a>
@@ -417,7 +431,7 @@ function relinkTooltip(){
 					<a href="/d3/zh/profile/${profileUrl}/hero/${firstHeroId}" >
 					   <span>英雄</span>
 					</a>
-				</li>
+				</li>-->
 				<li class="menu-friends ">
 					<a href="javascript:;" class="tab-active">
 					   <span>英灵殿</span>
