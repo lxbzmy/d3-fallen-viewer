@@ -244,13 +244,13 @@ function buildList(data){
 		if(data.fallenHeroes == undefined) data.fallenHeroes = [];
 		
 		function ct(idx,item){
-			var class_name = item.class + (item.gender ==0?'-male':'-female');
+			var class_name = item['class'] + (item.gender ==0?'-male':'-female');
 			var li = tpl.replace(/\$\{className\}/g,class_name)
 				.replace(/\$\{heroId\}/g,item.heroId)
 				.replace(/\$\{idx\}/g,idx)
 				.replace(/\$\{level\}/g,item.level)
 				.replace(/\$\{name\}/g,item.name)
-				.replace(/\$\{class\}/g,item.class)
+				.replace(/\$\{class\}/g,item['class'])
 			$ul.append(li);
 			
 		}
@@ -318,12 +318,12 @@ function updateContextLink(data){
 }
 function onFallenHero(idx,fallen){
 	
-	$('#profile-body>div').attr('class',fallen.class + (fallen.gender ==0?'-mail':'-female'));
+	$('#profile-body>div').attr('class',fallen['class'] + (fallen.gender ==0?'-mail':'-female'));
 	
 	 var html=	profileSheetTpl
 	.replace(/\$\{name\}/g,fallen.name)
 	.replace(/\$\{level\}/g,fallen.level)
-	.replace(/\$\{class\}/g,fallen.class);
+	.replace(/\$\{class\}/g,fallen['class']);
 	$('div.profile-sheet').html(html);
 	
 	$gear = $('div.profile-sheet ul.gear-slots');
@@ -378,8 +378,8 @@ function onFallenHero(idx,fallen){
 					'monk':'精气',
 					'witch-doctor':'法力'}
 	
-	$('ul.resources li:first span.resource-icon').attr('class','resource-icon '+resourceClassMap[fallen.class]);
-	$('ul.resources li:first span.label').html(resourceNameMap[fallen.class]);
+	$('ul.resources li:first span.resource-icon').attr('class','resource-icon '+resourceClassMap[fallen['class']]);
+	$('ul.resources li:first span.label').html(resourceNameMap[fallen['class']]);
 	//re bind dynamic tooltip
 	relinkTooltip();
 //	$('div.profile-sheet h2').text(fallen.name);
@@ -389,7 +389,7 @@ function onFallenHero(idx,fallen){
 function buildItemHtml(where,item){
 	
 	
-	var tpl = '<a class="slot-link" href="#" onclick="alert(1);onItemClick(\'${tooltipParams}\');return false;" data-d3tooltip=${tooltipParams}">'+
+	var tpl = '<a class="slot-link" href="#" onclick="onItemClick(\'${tooltipParams}\');return false;" data-d3tooltip=${tooltipParams}">'+
 				'<span class="d3-icon d3-icon-item d3-icon-item-${displayColor}">'+
 				'	<span class="icon-item-gradient">'+
 				'		<span class="icon-item-inner"></span>'+
