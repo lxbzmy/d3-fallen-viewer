@@ -74,19 +74,36 @@ _gaq.push(['_trackPageview']);
 _gaq.push(['_trackPageLoadTime']);
 //]]>
 </script>
-
-
 </head>
 
 <body>
-
+<style>
+.appriseOuter
+	{
+	background:#eee;
+	border:1px solid #fff;
+	box-shadow:0px 3px 7px #333;
+	-moz-box-shadow:0px 3px 7px #333;
+	-webkit-box-shadow:0px 3px 7px #333;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	border-radius:4px;
+	-khtml-border-radius:4px;
+	position:absolute;
+	z-index:99999999;
+	min-width:200px;
+	min-height:50px;
+	max-width:75%;
+	position:fixed;
+	display:none;
+	}
+</style>
 <script type="text/javascript">
 
 var profileAPI = "http://${host_type}.battle.net/api/d3/profile/${hero_code}/";
 
 
-</script>
-
+</script> 
 <script>
 var host_type = 'tw';
 var hero_code;
@@ -118,6 +135,7 @@ $(init);
 //eg.index.htm?q=tw-lxbzmy-3546-21817249
 
 var heroId='';
+var index='';
 function onParam(q){
 	var p = q.split('-');
 	if(p.length>=3){
@@ -154,7 +172,7 @@ called when data loaded from battlenet.
 */
 function onData(data){
 //	console.log(data);
-	document.data = data;
+	window.data = data;
 	
 	if('code' in data){
 		$('#message').html(data.code+":"+data.reason);
@@ -270,6 +288,7 @@ function buildList(data){
 			
 			var idx = a.getAttribute('data-tooltip').match(/\d+$/)[0];
 			
+			index = idx;
 			
 			//just promot a link to page when this characher already selected.
 			if($(a).hasClass('hardcore-active')){
@@ -317,6 +336,9 @@ function updateContextLink(data){
 		});
 }
 function onFallenHero(idx,fallen){
+	heroId = fallen.heroId
+	index = idx;
+	
 	
 	$('#profile-body>div').attr('class',fallen['class'] + (fallen.gender ==0?'-mail':'-female'));
 	
@@ -451,7 +473,7 @@ function relinkTooltip(){
 	
 	$("a[data-d3tooltip]").bind("mouseover",function(e){
 		a = this;
-		console.log(a);
+//		console.log(a);
 		
 		var url = Core.baseUrl + '/tooltip/' + a.getAttribute('data-d3tooltip')
 		$.getScript(url + '?format=jsonp',function(){
@@ -461,27 +483,116 @@ function relinkTooltip(){
 	});
 }
 
+function copy_discuz_style(){
+	
+	function getImage(item){
+		var t = "[table][tr=${displayColor}][td][img]http://media.blizzard.com/d3/icons/items/small/${icon}.png[/img][/td][/tr][/table]"
+		if(item){
+			var color = item.displayColor
+			switch(color){
+				case "blue":
+				color="#615FE5";break;
+				case "yellow":
+				color="#E7E600";break;
+				case "orange":
+				color="#AE5A2A";break;
+			}
+			var m = t.replace(/\$\{tooltipParams\}/g,item.tooltipParams)
+		.replace(/\$\{icon\}/g,item.icon)
+		.replace(/\$\{name\}/g,item.name)
+		.replace(/\$\{displayColor\}/g,color);
+		return m;
+		}
+
+	}
+	
+	var tpl = "[table]\r\n" + 
+		"[tr][td]英雄：[/td][td][url=${url}]${name}[/url] ${level}级 ${class} 服务器：${server}[/td][/tr]\r\n" + 
+		"[tr][td]属性：[/td][td]力量：${strength}，敏捷${dexterity}，智力：${intelligence}，体能${vitality}[/td][/tr]\r\n" + 
+		"[tr][td]属性：[/td][td]护甲：${armor}，伤害：${damage}，生命：${life},减伤：${damageReduction} [/td][/tr]\r\n" + 
+		"[tr][td]时间：[/td][td]${time}[/td][/tr]\r\n" + 
+		"[tr][td]地点：[/td][td][/td][/tr]\r\n" + 
+		"[tr][td]备注：[/td][td][/td][/tr]\r\n" + 
+		"[/table]\r\n" + 
+		"\r\n" + 
+		"\r\n" + 
+		"[table]\r\n" + 
+		"[tr]\r\n" + 
+		"[td=1,2,32]${mainHand}[/td]\r\n" + 
+		"[td=1,2,32]${offHand}[/td]\r\n" + 
+		"[td=32]${waist}[/td]\r\n" + 
+		"[td=32]${neck}[/td]\r\n" + 
+		"[td=1,2,32]${head}[/td]\r\n" + 
+		"[td=1,2,32]${torso}[/td]\r\n" + 
+		"[td=1,2,32]${legs}[/td]\r\n" + 
+		"[td=1,2,32]${feet}[/td]\r\n" + 
+		"[td=1,2,32]${hands}[/td]\r\n" + 
+		"[td=1,2,32]${shoulders}[/td]\r\n" + 
+		"[td=1,2,32]${bracers}[/td]\r\n" + 
+		"[td=1,2][/td][/tr]\r\n" + 
+		"\r\n" + 
+		"[tr][td]${leftFinger}[/td]\r\n" + 
+		"[td]${rightFinger}[/td][/tr]\r\n" + 
+		"[tr][td=11,1][url=${url}]装备页[/url][/td][/tr]\r\n" + 
+		"[/table]";
+		
+	if(index>-1){
+			//just promot a link to page when this characher already selected.
+		var fallen = data.fallenHeroes[index];
+		var href = (document.location.href).replace(document.location.search,'')+'?q='+host_type+'-'+data.battleTag.replace('#','-')+'-'+data.fallenHeroes[index].heroId;
+		var time = new Date()
+	time.setTime(fallen.death.time*1000)
+	
+		var bbcode = tpl
+		.replace(/\$\{server\}/g,host_type)
+		.replace(/\$\{url\}/g,href)
+		.replace(/\$\{name\}/g,fallen.name)
+	    .replace(/\$\{level\}/g,fallen.level)
+     	.replace(/\$\{class\}/g,fallen['class'])
+		.replace(/\$\{life\}/g,fallen.stats.life )
+		.replace(/\$\{damage\}/g,fallen.stats.damage )
+		.replace(/\$\{armor\}/g,fallen.stats.armor )
+		.replace(/\$\{strength\}/g,fallen.stats.strength )
+		.replace(/\$\{dexterity\}/g,fallen.stats.dexterity )
+		.replace(/\$\{vitality\}/g,fallen.stats.vitality )
+		.replace(/\$\{intelligence\}/g,fallen.stats.intelligence )
+		.replace(/\$\{physicalResist\}/g,fallen.stats.physicalResist )
+		.replace(/\$\{fireResist\}/g,fallen.stats.fireResist )
+		.replace(/\$\{coldResist\}/g,fallen.stats.coldResist )
+		.replace(/\$\{lightningResist\}/g,fallen.stats.lightningResist )
+		.replace(/\$\{poisonResist\}/g,fallen.stats.poisonResist )
+		.replace(/\$\{arcaneResist\}/g,fallen.stats.arcaneResist )
+		.replace(/\$\{damageIncrease\}/g,Number(fallen.stats.damageIncrease*100).toFixed(2)+'%' )
+		.replace(/\$\{critChance\}/g,Number(fallen.stats.critChance*100).toFixed(2)+'%' )
+		.replace(/\$\{damageReduction\}/g,Number(fallen.stats.damageReduction*100).toFixed(2)+ '%')
+		.replace(/\$\{elites\}/g,fallen.kills.elites )
+		.replace(/\$\{time\}/g,time.toLocaleString())
+//		.replace(/\r\n/g,"")
+		;
+		var items = fallen.items;
+		var pos = ['head','torso','feet','hands','shoulders','legs','bracers','mainHand','offHand','waist','rightFinger','leftFinger','neck'];	
+		$.each(pos,function(idx,v){
+			  bbcode = bbcode.replace("${"+v+"}",getImage(items[v]));		
+			  console.log(bbcode);
+			});
+			
+		$("#copy textarea").val(bbcode);
+     	$("#copy").show();
+		$("#copy textarea").get(0).select()
+	}
+}
+
 </script>
-
-
-
 <div xmlns="http://www.w3.org/1999/xhtml" class="wrapper">
-
-<div id="content" class="body">
-<div class="body-top">
-<div class="body-bot">
-
-
-	<div class="profile-wrapper">
-		<div class="profile-head">
-			<a href="/d3/zh/profile/${profileUrl}/">
-					<h2 class="header "> <span>#</span></h2>
-
-			</a><span id="message"></span>
-	<span class="clear"><!-- --></span>
-		</div>
-	<ul class="tab-menu ">
-				<!--<li class="menu-career ">
+  <div id="content" class="body">
+    <div class="body-top">
+      <div class="body-bot">
+        <div class="profile-wrapper">
+          <div class="profile-head"> <a href="/d3/zh/profile/${profileUrl}/">
+            <h2 class="header "> <span>#</span></h2>
+            </a><span id="message"></span> <span class="clear"><!-- --></span> </div>
+          <ul class="tab-menu ">
+            <!--<li class="menu-career ">
 					<a href="/d3/zh/profile/${profileUrl}/">
 					   <span>冒險經歷</span>
 					</a>
@@ -491,870 +602,421 @@ function relinkTooltip(){
 					   <span>英雄</span>
 					</a>
 				</li>-->
-				<li class="menu-friends ">
-					<a href="javascript:;" class="tab-active">
-					   <span>英灵殿</span>
-					</a>
-				</li>
-	</ul>
-			
-      
-			
-
-		<div class="profile-body" id="profile-body">
-
-
-	<div class="demon-hunter-female">
-		<div class="profile-selector" id="heroes">
-			<ul class="hero-tabs">				
-					<li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-                    <li><span class="hero-tab empty-hero"></span></li>
-			</ul>
-		</div>
-
-		<div class="profile-sheet">
-				<h2 class="header name">${name}</h2>
-
-
-	<h3 class="subheader class">				<a href="/d3/zh/class/demon-hunter/">
-					
-					<strong>${level}<span class="paragon-level"></span></strong> ${class}
-				</a>
-</h3>
-
-			<div class="paperdoll" id="paperdoll">
-	
-	
-	<ul class="gear-slots">
-	<li class="slot-head">
-		
-		
-
-	</li>
-	<li class="slot-torso">
-		
-
-	</li>
-	<li class="slot-feet"></li>
-	<li class="slot-hands"></li>
-	<li class="slot-shoulders"></li>
-	<li class="slot-legs"></li>
-	<li class="slot-bracers"></li>
-	<li class="slot-mainHand"></li>
-	<li class="slot-offHand"></li>
-	<li class="slot-waist"></li>
-	<li class="slot-rightFinger"></li>
-	<li class="slot-leftFinger"></li>
-	<li class="slot-neck"></li>
-		
-	</ul>
-
-	<ul class="gear-labels" id="gear-labels">		
-
-
-	
-		<li class="gear-label slot-head">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-torso">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-feet">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-hands">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-shoulders">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-legs">
-			
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-bracers">
-			
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-mainHand">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-offHand">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-waist">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-rightFinger">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-leftFinger">
-	
-		</li>
-
-
-	
-		<li class="gear-label slot-neck">
-	
-		</li>
-    </ul>
-
-    <ul class="gear-lines">
-				<li class="slot-head"></li>
-				<li class="slot-torso"></li>
-				<li class="slot-feet"></li>
-				<li class="slot-hands"></li>
-				<li class="slot-shoulders"></li>
-				<li class="slot-legs"></li>
-				<li class="slot-bracers"></li>
-				<li class="slot-mainHand"></li>
-				<li class="slot-offHand"></li>
-				<li class="slot-waist"></li>
-				<li class="slot-rightFinger"></li>
-				<li class="slot-leftFinger"></li>
-				<li class="slot-neck"></li>
-    </ul>
-			</div>
-
-
-		<div class="gear-bonuses" id="bonuses" style="display:none;">
-				<h3 class="category "><span class="help-icon tip" data-tooltip="#gear-bonuses-tooltip"></span>裝備加成</h3>
-
-
-			<div id="gear-bonuses-tooltip" style="display: none;">
-				<div class="profile-tooltip">
-						<h3 class="subheader ">裝備加成</h3>
-
-					<p>此功能列出身上裝備的主要加成屬性。你可以選擇一個加成來查看該加成來自哪些裝備。</p>
-				</div>
-			</div>
-
-			<ul>
-					<li>
-						<a href="javascript:;" class="bonus-stat" data-bonus-index="46">
-							<span class="bonus-radio active"></span><p><span class="value">+1499</span> 敏捷</p>
-						</a>
-					</li>
-					<li>
-						<a href="javascript:;" class="bonus-stat" data-bonus-index="155">
-							<span class="bonus-radio"></span><p>爆擊機率提高 <span class="value">29.5</span><span class="value">%</span></p>
-						</a>
-					</li>
-					<li>
-						<a href="javascript:;" class="bonus-stat" data-bonus-index="85">
-							<span class="bonus-radio"></span><p>爆擊傷害提高 <span class="value">261</span><span class="value">%</span></p>
-						</a>
-					</li>
-					<li>
-						<a href="javascript:;" class="bonus-stat" data-bonus-index="56">
-							<span class="bonus-radio"></span><p><span class="value">+</span><span class="value">344</span> 全元素抗性</p>
-						</a>
-					</li>
-					<li>
-						<a href="javascript:;" class="bonus-stat" data-bonus-index="59">
-							<span class="bonus-radio"></span><p>攻擊速度提高 <span class="value">46</span><span class="value">%</span></p>
-						</a>
-					</li>
-			</ul>
-		</div>
-
-	<span class="clear"><!-- --></span>
-		</div>
-
-		<div class="profile-lower">
-
-			<div class="profile-overview" id="overview">
-
-
-    <div class="page-section skills" style="visibility:hidden;display:none;">
-            <div class="section-header ">
-                	<h3 class="category ">技能</h3>
-
-
-            </div>
-
-        <div class="section-body">
-		<a href="/d3/zh/calculator/demon-hunter#WegdPZ!ebf!ZaYbaa" class="profile-link">
-			檢視技能模擬器
-			<span class="icon-frame icon-frame-text">
-				<span class="icon-16 icon-16-rarrow"></span>
-			</span>
-		</a>
-
-		<div class="skills-wrapper">
-
-			<ul class="active-skills clear-after">
-
-						<li>
-							<div id="active-skill-tooltip-0" style="display:none;">
-	<div class="d3-tooltip d3-tooltip-skill">
-
-
-
-	<div class="tooltip-head">
-		<h3 class="">縛錘彈</h3>
-	</div>
-
-	<div class="tooltip-body ">
-
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_bolashot.png'); width: 64px; height: 64px;">
-			<span class="frame"></span>
-		</span>
-	
-			<div class="description">
-					<p><span class="d3-color-gold">產生：</span><span class="d3-color-green">3</span> 點憎恨</p><p>射出一枚會爆炸的縛錘彈，綑住目標。縛錘彈會在 <span class="d3-color-green">1</span> 秒後爆炸，造成 <span class="d3-color-green">160%</span> 武器傷害值的火焰傷害，並且對 <span class="d3-color-green">14</span> 碼內的其他目標造成 <span class="d3-color-green">110%</span> 武器傷害值的火焰傷害。</p>
-					<p class="special">主要技能</p>
-				<p class="subtle">於<em>11</em>級解鎖</p>
-			</div>
-
-	</div>
-
-
-	<div class="tooltip-extension rune-extension">
-	<span class="d3-icon d3-icon-rune d3-icon-rune-large">
-		<span class="rune-c"></span>
-	</span>
-					<h3 class="category ">霹靂彈</h3>
-
-					<p>縛錘彈爆炸時造成 <span class="d3-color-green">160%</span> 武器傷害值的電擊傷害，並有 <span class="d3-color-green">35%</span> 機率可使主要目標昏迷 <span class="d3-color-green">1.5</span> 秒。</p>
-				<p class="subtle">於<em>24</em>級解鎖</p>
-	</div>
-
-	</div>
-							</div>
-
-							<a id="active-skill-tooltip-0-link" href="/d3/zh/class/demon-hunter/active/bola-shot" data-tooltip="#active-skill-tooltip-0">
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_bolashot.png'); width: 42px; height: 42px;">
-			<span class="frame"></span>
-		</span>
-								<span class="skill-name">
-									縛錘彈
-									<span class="rune-name">
-										霹靂彈
-									</span>
-								</span>
-							</a>
-							<span class="slot slot-primary"></span>
-
-        <script type="text/javascript">
+            <li class="menu-friends "> <a href="javascript:;" class="tab-active"> <span>英灵殿</span> </a> </li>
+          </ul>
+          <div class="profile-body" id="profile-body">
+            <div class="demon-hunter-female">
+              <div class="profile-selector" id="heroes">
+                <ul class="hero-tabs">
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                  <li><span class="hero-tab empty-hero"></span></li>
+                </ul>
+              </div>
+              <div class="profile-sheet">
+                <h2 class="header name">${name}</h2>
+                <h3 class="subheader class"> <a href="/d3/zh/class/demon-hunter/"> <strong>${level}<span class="paragon-level"></span></strong> ${class} </a> </h3>
+                <div class="paperdoll" id="paperdoll">
+                  <ul class="gear-slots">
+                    <li class="slot-head"> </li>
+                    <li class="slot-torso"> </li>
+                    <li class="slot-feet"></li>
+                    <li class="slot-hands"></li>
+                    <li class="slot-shoulders"></li>
+                    <li class="slot-legs"></li>
+                    <li class="slot-bracers"></li>
+                    <li class="slot-mainHand"></li>
+                    <li class="slot-offHand"></li>
+                    <li class="slot-waist"></li>
+                    <li class="slot-rightFinger"></li>
+                    <li class="slot-leftFinger"></li>
+                    <li class="slot-neck"></li>
+                  </ul>
+                  <ul class="gear-labels" id="gear-labels">
+                    <li class="gear-label slot-head"> </li>
+                    <li class="gear-label slot-torso"> </li>
+                    <li class="gear-label slot-feet"> </li>
+                    <li class="gear-label slot-hands"> </li>
+                    <li class="gear-label slot-shoulders"> </li>
+                    <li class="gear-label slot-legs"> </li>
+                    <li class="gear-label slot-bracers"> </li>
+                    <li class="gear-label slot-mainHand"> </li>
+                    <li class="gear-label slot-offHand"> </li>
+                    <li class="gear-label slot-waist"> </li>
+                    <li class="gear-label slot-rightFinger"> </li>
+                    <li class="gear-label slot-leftFinger"> </li>
+                    <li class="gear-label slot-neck"> </li>
+                  </ul>
+                  <ul class="gear-lines">
+                    <li class="slot-head"></li>
+                    <li class="slot-torso"></li>
+                    <li class="slot-feet"></li>
+                    <li class="slot-hands"></li>
+                    <li class="slot-shoulders"></li>
+                    <li class="slot-legs"></li>
+                    <li class="slot-bracers"></li>
+                    <li class="slot-mainHand"></li>
+                    <li class="slot-offHand"></li>
+                    <li class="slot-waist"></li>
+                    <li class="slot-rightFinger"></li>
+                    <li class="slot-leftFinger"></li>
+                    <li class="slot-neck"></li>
+                  </ul>
+                </div>
+                <div class="gear-bonuses" id="bonuses" style="display:none;">
+                  <h3 class="category "><span class="help-icon tip" data-tooltip="#gear-bonuses-tooltip"></span>裝備加成</h3>
+                  <div id="gear-bonuses-tooltip" style="display: none;">
+                    <div class="profile-tooltip">
+                      <h3 class="subheader ">裝備加成</h3>
+                      <p>此功能列出身上裝備的主要加成屬性。你可以選擇一個加成來查看該加成來自哪些裝備。</p>
+                    </div>
+                  </div>
+                  <ul>
+                    <li> <a href="javascript:;" class="bonus-stat" data-bonus-index="46"> <span class="bonus-radio active"></span>
+                      <p><span class="value">+1499</span> 敏捷</p>
+                      </a> </li>
+                    <li> <a href="javascript:;" class="bonus-stat" data-bonus-index="155"> <span class="bonus-radio"></span>
+                      <p>爆擊機率提高 <span class="value">29.5</span><span class="value">%</span></p>
+                      </a> </li>
+                    <li> <a href="javascript:;" class="bonus-stat" data-bonus-index="85"> <span class="bonus-radio"></span>
+                      <p>爆擊傷害提高 <span class="value">261</span><span class="value">%</span></p>
+                      </a> </li>
+                    <li> <a href="javascript:;" class="bonus-stat" data-bonus-index="56"> <span class="bonus-radio"></span>
+                      <p><span class="value">+</span><span class="value">344</span> 全元素抗性</p>
+                      </a> </li>
+                    <li> <a href="javascript:;" class="bonus-stat" data-bonus-index="59"> <span class="bonus-radio"></span>
+                      <p>攻擊速度提高 <span class="value">46</span><span class="value">%</span></p>
+                      </a> </li>
+                  </ul>
+                </div>
+                <span class="clear"><!-- --></span> </div>
+              <div class="profile-lower">
+                <div class="profile-overview" id="overview">
+                  <div class="page-section skills" style="visibility:hidden;display:none;">
+                    <div class="section-header ">
+                      <h3 class="category ">技能</h3>
+                    </div>
+                    <div class="section-body"> <a href="/d3/zh/calculator/demon-hunter#WegdPZ!ebf!ZaYbaa" class="profile-link"> 檢視技能模擬器 <span class="icon-frame icon-frame-text"> <span class="icon-16 icon-16-rarrow"></span> </span> </a>
+                      <div class="skills-wrapper">
+                        <ul class="active-skills clear-after">
+                          <li>
+                            <div id="active-skill-tooltip-0" style="display:none;">
+                              <div class="d3-tooltip d3-tooltip-skill">
+                                <div class="tooltip-head">
+                                  <h3 class="">縛錘彈</h3>
+                                </div>
+                                <div class="tooltip-body "> <span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_bolashot.png'); width: 64px; height: 64px;"> <span class="frame"></span> </span>
+                                  <div class="description">
+                                    <p><span class="d3-color-gold">產生：</span><span class="d3-color-green">3</span> 點憎恨</p>
+                                    <p>射出一枚會爆炸的縛錘彈，綑住目標。縛錘彈會在 <span class="d3-color-green">1</span> 秒後爆炸，造成 <span class="d3-color-green">160%</span> 武器傷害值的火焰傷害，並且對 <span class="d3-color-green">14</span> 碼內的其他目標造成 <span class="d3-color-green">110%</span> 武器傷害值的火焰傷害。</p>
+                                    <p class="special">主要技能</p>
+                                    <p class="subtle">於<em>11</em>級解鎖</p>
+                                  </div>
+                                </div>
+                                <div class="tooltip-extension rune-extension"> <span class="d3-icon d3-icon-rune d3-icon-rune-large"> <span class="rune-c"></span> </span>
+                                  <h3 class="category ">霹靂彈</h3>
+                                  <p>縛錘彈爆炸時造成 <span class="d3-color-green">160%</span> 武器傷害值的電擊傷害，並有 <span class="d3-color-green">35%</span> 機率可使主要目標昏迷 <span class="d3-color-green">1.5</span> 秒。</p>
+                                  <p class="subtle">於<em>24</em>級解鎖</p>
+                                </div>
+                              </div>
+                            </div>
+                            <a id="active-skill-tooltip-0-link" href="/d3/zh/class/demon-hunter/active/bola-shot" data-tooltip="#active-skill-tooltip-0"> <span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_bolashot.png'); width: 42px; height: 42px;"> <span class="frame"></span> </span> <span class="skill-name"> 縛錘彈 <span class="rune-name"> 霹靂彈 </span> </span> </a> <span class="slot slot-primary"></span> 
+                            <script type="text/javascript">
         //<![CDATA[
 								$(function() {
 									$("#active-skill-tooltip-0-link").data("tooltip-options", {className: "ui-tooltip-d3"});
 								});
         //]]>
-        </script>
-						</li>
-
-						<li>
-							<div id="active-skill-tooltip-1" style="display:none;">
-	<div class="d3-tooltip d3-tooltip-skill">
-
-
-
-	<div class="tooltip-head">
-		<h3 class="">戰輪</h3>
-	</div>
-
-	<div class="tooltip-body ">
-
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_chakram.png'); width: 64px; height: 64px;">
-			<span class="frame"></span>
-		</span>
-	
-			<div class="description">
-					<p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">10</span> 點憎恨</p><p>發射一枚旋轉的戰輪，對其行進路徑上的敵人造成 <span class="d3-color-green">170%</span> 武器傷害值的物理傷害。</p>
-					<p class="special">次要技能</p>
-				<p class="subtle">於<em>12</em>級解鎖</p>
-			</div>
-
-	</div>
-
-
-	<div class="tooltip-extension rune-extension">
-	<span class="d3-icon d3-icon-rune d3-icon-rune-large">
-		<span class="rune-a"></span>
-	</span>
-					<h3 class="category ">雙生戰輪</h3>
-
-					<p>擲出兩枚迴旋曲進的戰輪。每枚戰輪造成 <span class="d3-color-green">114%</span> 武器傷害值的物理傷害。</p>
-				<p class="subtle">於<em>18</em>級解鎖</p>
-	</div>
-
-	</div>
-							</div>
-
-							<a id="active-skill-tooltip-1-link" href="/d3/zh/class/demon-hunter/active/chakram" data-tooltip="#active-skill-tooltip-1">
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_chakram.png'); width: 42px; height: 42px;">
-			<span class="frame"></span>
-		</span>
-								<span class="skill-name">
-									戰輪
-									<span class="rune-name">
-										雙生戰輪
-									</span>
-								</span>
-							</a>
-							<span class="slot slot-secondary"></span>
-
-        <script type="text/javascript">
+        </script> 
+                          </li>
+                          <li>
+                            <div id="active-skill-tooltip-1" style="display:none;">
+                              <div class="d3-tooltip d3-tooltip-skill">
+                                <div class="tooltip-head">
+                                  <h3 class="">戰輪</h3>
+                                </div>
+                                <div class="tooltip-body "> <span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_chakram.png'); width: 64px; height: 64px;"> <span class="frame"></span> </span>
+                                  <div class="description">
+                                    <p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">10</span> 點憎恨</p>
+                                    <p>發射一枚旋轉的戰輪，對其行進路徑上的敵人造成 <span class="d3-color-green">170%</span> 武器傷害值的物理傷害。</p>
+                                    <p class="special">次要技能</p>
+                                    <p class="subtle">於<em>12</em>級解鎖</p>
+                                  </div>
+                                </div>
+                                <div class="tooltip-extension rune-extension"> <span class="d3-icon d3-icon-rune d3-icon-rune-large"> <span class="rune-a"></span> </span>
+                                  <h3 class="category ">雙生戰輪</h3>
+                                  <p>擲出兩枚迴旋曲進的戰輪。每枚戰輪造成 <span class="d3-color-green">114%</span> 武器傷害值的物理傷害。</p>
+                                  <p class="subtle">於<em>18</em>級解鎖</p>
+                                </div>
+                              </div>
+                            </div>
+                            <a id="active-skill-tooltip-1-link" href="/d3/zh/class/demon-hunter/active/chakram" data-tooltip="#active-skill-tooltip-1"> <span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_chakram.png'); width: 42px; height: 42px;"> <span class="frame"></span> </span> <span class="skill-name"> 戰輪 <span class="rune-name"> 雙生戰輪 </span> </span> </a> <span class="slot slot-secondary"></span> 
+                            <script type="text/javascript">
         //<![CDATA[
 								$(function() {
 									$("#active-skill-tooltip-1-link").data("tooltip-options", {className: "ui-tooltip-d3"});
 								});
         //]]>
-        </script>
-						</li>
-
-						<li>
-							<div id="active-skill-tooltip-2" style="display:none;">
-	<div class="d3-tooltip d3-tooltip-skill">
-
-
-
-	<div class="tooltip-head">
-		<h3 class="">暗影之力</h3>
-	</div>
-
-	<div class="tooltip-body ">
-
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_shadowpower.png'); width: 64px; height: 64px;">
-			<span class="frame"></span>
-		</span>
-	
-			<div class="description">
-					<p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">14</span> 點戒律</p><p>汲取暗影之力，將你造成的 <span class="d3-color-green">15%</span> 傷害轉為生命值，持續 <span class="d3-color-green">5</span> 秒。</p>
-					<p class="special">防禦</p>
-				<p class="subtle">於<em>16</em>級解鎖</p>
-			</div>
-
-	</div>
-
-
-	<div class="tooltip-extension rune-extension">
-	<span class="d3-icon d3-icon-rune d3-icon-rune-large">
-		<span class="rune-c"></span>
-	</span>
-					<h3 class="category ">潛入暗影</h3>
-
-					<p>在暗影之力的效果持續期間內，受到的傷害降低 <span class="d3-color-green">35%</span>。</p>
-				<p class="subtle">於<em>51</em>級解鎖</p>
-	</div>
-
-	</div>
-							</div>
-
-							<a id="active-skill-tooltip-2-link" href="/d3/zh/class/demon-hunter/active/shadow-power" data-tooltip="#active-skill-tooltip-2">
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_shadowpower.png'); width: 42px; height: 42px;">
-			<span class="frame"></span>
-		</span>
-								<span class="skill-name">
-									暗影之力
-									<span class="rune-name">
-										潛入暗影
-									</span>
-								</span>
-							</a>
-							<span class="slot slot-1"></span>
-
-        <script type="text/javascript">
+        </script> 
+                          </li>
+                          <li>
+                            <div id="active-skill-tooltip-2" style="display:none;">
+                              <div class="d3-tooltip d3-tooltip-skill">
+                                <div class="tooltip-head">
+                                  <h3 class="">暗影之力</h3>
+                                </div>
+                                <div class="tooltip-body "> <span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_shadowpower.png'); width: 64px; height: 64px;"> <span class="frame"></span> </span>
+                                  <div class="description">
+                                    <p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">14</span> 點戒律</p>
+                                    <p>汲取暗影之力，將你造成的 <span class="d3-color-green">15%</span> 傷害轉為生命值，持續 <span class="d3-color-green">5</span> 秒。</p>
+                                    <p class="special">防禦</p>
+                                    <p class="subtle">於<em>16</em>級解鎖</p>
+                                  </div>
+                                </div>
+                                <div class="tooltip-extension rune-extension"> <span class="d3-icon d3-icon-rune d3-icon-rune-large"> <span class="rune-c"></span> </span>
+                                  <h3 class="category ">潛入暗影</h3>
+                                  <p>在暗影之力的效果持續期間內，受到的傷害降低 <span class="d3-color-green">35%</span>。</p>
+                                  <p class="subtle">於<em>51</em>級解鎖</p>
+                                </div>
+                              </div>
+                            </div>
+                            <a id="active-skill-tooltip-2-link" href="/d3/zh/class/demon-hunter/active/shadow-power" data-tooltip="#active-skill-tooltip-2"> <span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_shadowpower.png'); width: 42px; height: 42px;"> <span class="frame"></span> </span> <span class="skill-name"> 暗影之力 <span class="rune-name"> 潛入暗影 </span> </span> </a> <span class="slot slot-1"></span> 
+                            <script type="text/javascript">
         //<![CDATA[
 								$(function() {
 									$("#active-skill-tooltip-2-link").data("tooltip-options", {className: "ui-tooltip-d3"});
 								});
         //]]>
-        </script>
-						</li>
-
-						<li>
-							<div id="active-skill-tooltip-3" style="display:none;">
-	<div class="d3-tooltip d3-tooltip-skill">
-
-
-
-	<div class="tooltip-head">
-		<h3 class="">騰躍</h3>
-	</div>
-
-	<div class="tooltip-body ">
-
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_vault.png'); width: 64px; height: 64px;">
-			<span class="frame"></span>
-		</span>
-	
-			<div class="description">
-					<p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">8</span> 點戒律</p><p>靈活翻滾 <span class="d3-color-green">35</span> 碼。</p>
-					<p class="special">狩獵</p>
-				<p class="subtle">於<em>9</em>級解鎖</p>
-			</div>
-
-	</div>
-
-
-	<div class="tooltip-extension rune-extension">
-	<span class="d3-icon d3-icon-rune d3-icon-rune-large">
-		<span class="rune-d"></span>
-	</span>
-					<h3 class="category ">連環滾翻</h3>
-
-					<p>使用騰躍後，<span class="d3-color-green">6</span> 秒內下個騰躍的戒律消耗降低 <span class="d3-color-green">50%</span>。</p>
-				<p class="subtle">於<em>33</em>級解鎖</p>
-	</div>
-
-	</div>
-							</div>
-
-							<a id="active-skill-tooltip-3-link" href="/d3/zh/class/demon-hunter/active/vault" data-tooltip="#active-skill-tooltip-3">
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_vault.png'); width: 42px; height: 42px;">
-			<span class="frame"></span>
-		</span>
-								<span class="skill-name">
-									騰躍
-									<span class="rune-name">
-										連環滾翻
-									</span>
-								</span>
-							</a>
-							<span class="slot slot-2"></span>
-
-        <script type="text/javascript">
+        </script> 
+                          </li>
+                          <li>
+                            <div id="active-skill-tooltip-3" style="display:none;">
+                              <div class="d3-tooltip d3-tooltip-skill">
+                                <div class="tooltip-head">
+                                  <h3 class="">騰躍</h3>
+                                </div>
+                                <div class="tooltip-body "> <span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_vault.png'); width: 64px; height: 64px;"> <span class="frame"></span> </span>
+                                  <div class="description">
+                                    <p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">8</span> 點戒律</p>
+                                    <p>靈活翻滾 <span class="d3-color-green">35</span> 碼。</p>
+                                    <p class="special">狩獵</p>
+                                    <p class="subtle">於<em>9</em>級解鎖</p>
+                                  </div>
+                                </div>
+                                <div class="tooltip-extension rune-extension"> <span class="d3-icon d3-icon-rune d3-icon-rune-large"> <span class="rune-d"></span> </span>
+                                  <h3 class="category ">連環滾翻</h3>
+                                  <p>使用騰躍後，<span class="d3-color-green">6</span> 秒內下個騰躍的戒律消耗降低 <span class="d3-color-green">50%</span>。</p>
+                                  <p class="subtle">於<em>33</em>級解鎖</p>
+                                </div>
+                              </div>
+                            </div>
+                            <a id="active-skill-tooltip-3-link" href="/d3/zh/class/demon-hunter/active/vault" data-tooltip="#active-skill-tooltip-3"> <span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_vault.png'); width: 42px; height: 42px;"> <span class="frame"></span> </span> <span class="skill-name"> 騰躍 <span class="rune-name"> 連環滾翻 </span> </span> </a> <span class="slot slot-2"></span> 
+                            <script type="text/javascript">
         //<![CDATA[
 								$(function() {
 									$("#active-skill-tooltip-3-link").data("tooltip-options", {className: "ui-tooltip-d3"});
 								});
         //]]>
-        </script>
-						</li>
-
-						<li>
-							<div id="active-skill-tooltip-4" style="display:none;">
-	<div class="d3-tooltip d3-tooltip-skill">
-
-
-
-	<div class="tooltip-head">
-		<h3 class="">集束箭</h3>
-	</div>
-
-	<div class="tooltip-body ">
-
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_clusterarrow.png'); width: 64px; height: 64px;">
-			<span class="frame"></span>
-		</span>
-	
-			<div class="description">
-					<p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">50</span> 點憎恨</p><p>發射一枚集束箭，爆炸造成 <span class="d3-color-green">225%</span> 武器傷害值的火焰傷害，同時分裂成一連串的微型炸彈，每顆炸彈再爆炸並造成額外 <span class="d3-color-green">100%</span> 武器傷害值的火焰傷害。</p>
-					<p class="special">箭術</p>
-				<p class="subtle">於<em>27</em>級解鎖</p>
-			</div>
-
-	</div>
-
-
-	<div class="tooltip-extension rune-extension">
-	<span class="d3-icon d3-icon-rune d3-icon-rune-large">
-		<span class="rune-e"></span>
-	</span>
-					<h3 class="category ">震撼箭</h3>
-
-					<p>將傷害轉為物理傷害，並且使被炸彈擊中的敵人有 <span class="d3-color-green">55%</span> 機率昏迷 <span class="d3-color-green">2</span> 秒。</p>
-				<p class="subtle">於<em>33</em>級解鎖</p>
-	</div>
-
-	</div>
-							</div>
-
-							<a id="active-skill-tooltip-4-link" href="/d3/zh/class/demon-hunter/active/cluster-arrow" data-tooltip="#active-skill-tooltip-4">
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_clusterarrow.png'); width: 42px; height: 42px;">
-			<span class="frame"></span>
-		</span>
-								<span class="skill-name">
-									集束箭
-									<span class="rune-name">
-										震撼箭
-									</span>
-								</span>
-							</a>
-							<span class="slot slot-3"></span>
-
-        <script type="text/javascript">
+        </script> 
+                          </li>
+                          <li>
+                            <div id="active-skill-tooltip-4" style="display:none;">
+                              <div class="d3-tooltip d3-tooltip-skill">
+                                <div class="tooltip-head">
+                                  <h3 class="">集束箭</h3>
+                                </div>
+                                <div class="tooltip-body "> <span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_clusterarrow.png'); width: 64px; height: 64px;"> <span class="frame"></span> </span>
+                                  <div class="description">
+                                    <p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">50</span> 點憎恨</p>
+                                    <p>發射一枚集束箭，爆炸造成 <span class="d3-color-green">225%</span> 武器傷害值的火焰傷害，同時分裂成一連串的微型炸彈，每顆炸彈再爆炸並造成額外 <span class="d3-color-green">100%</span> 武器傷害值的火焰傷害。</p>
+                                    <p class="special">箭術</p>
+                                    <p class="subtle">於<em>27</em>級解鎖</p>
+                                  </div>
+                                </div>
+                                <div class="tooltip-extension rune-extension"> <span class="d3-icon d3-icon-rune d3-icon-rune-large"> <span class="rune-e"></span> </span>
+                                  <h3 class="category ">震撼箭</h3>
+                                  <p>將傷害轉為物理傷害，並且使被炸彈擊中的敵人有 <span class="d3-color-green">55%</span> 機率昏迷 <span class="d3-color-green">2</span> 秒。</p>
+                                  <p class="subtle">於<em>33</em>級解鎖</p>
+                                </div>
+                              </div>
+                            </div>
+                            <a id="active-skill-tooltip-4-link" href="/d3/zh/class/demon-hunter/active/cluster-arrow" data-tooltip="#active-skill-tooltip-4"> <span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_clusterarrow.png'); width: 42px; height: 42px;"> <span class="frame"></span> </span> <span class="skill-name"> 集束箭 <span class="rune-name"> 震撼箭 </span> </span> </a> <span class="slot slot-3"></span> 
+                            <script type="text/javascript">
         //<![CDATA[
 								$(function() {
 									$("#active-skill-tooltip-4-link").data("tooltip-options", {className: "ui-tooltip-d3"});
 								});
         //]]>
-        </script>
-						</li>
-
-						<li>
-							<div id="active-skill-tooltip-5" style="display:none;">
-	<div class="d3-tooltip d3-tooltip-skill">
-
-
-
-	<div class="tooltip-head">
-		<h3 class="">刺穿</h3>
-	</div>
-
-	<div class="tooltip-body ">
-
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_impale.png'); width: 64px; height: 64px;">
-			<span class="frame"></span>
-		</span>
-	
-			<div class="description">
-					<p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">25</span> 點憎恨</p><p>刺穿目標造成 <span class="d3-color-green">265%</span> 武器傷害。</p>
-					<p class="special">次要技能</p>
-				<p class="subtle">於<em>2</em>級解鎖</p>
-			</div>
-
-	</div>
-
-
-	<div class="tooltip-extension rune-extension">
-	<span class="d3-icon d3-icon-rune d3-icon-rune-large">
-		<span class="rune-b"></span>
-	</span>
-					<h3 class="category ">猛憾衝擊</h3>
-
-					<p>刺穿可造成擊退，並且有 <span class="d3-color-green">65%</span> 機率使敵人昏迷，持續 <span class="d3-color-green">1.5</span> 秒。</p>
-				<p class="subtle">於<em>7</em>級解鎖</p>
-	</div>
-
-	</div>
-							</div>
-
-							<a id="active-skill-tooltip-5-link" href="/d3/zh/class/demon-hunter/active/impale" data-tooltip="#active-skill-tooltip-5">
-
-
-
-		<span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_impale.png'); width: 42px; height: 42px;">
-			<span class="frame"></span>
-		</span>
-								<span class="skill-name">
-									刺穿
-									<span class="rune-name">
-										猛憾衝擊
-									</span>
-								</span>
-							</a>
-							<span class="slot slot-4"></span>
-
-        <script type="text/javascript">
+        </script> 
+                          </li>
+                          <li>
+                            <div id="active-skill-tooltip-5" style="display:none;">
+                              <div class="d3-tooltip d3-tooltip-skill">
+                                <div class="tooltip-head">
+                                  <h3 class="">刺穿</h3>
+                                </div>
+                                <div class="tooltip-body "> <span class="d3-icon d3-icon-skill d3-icon-skill-64 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/64/demonhunter_impale.png'); width: 64px; height: 64px;"> <span class="frame"></span> </span>
+                                  <div class="description">
+                                    <p><span class="d3-color-gold">消耗：</span><span class="d3-color-green">25</span> 點憎恨</p>
+                                    <p>刺穿目標造成 <span class="d3-color-green">265%</span> 武器傷害。</p>
+                                    <p class="special">次要技能</p>
+                                    <p class="subtle">於<em>2</em>級解鎖</p>
+                                  </div>
+                                </div>
+                                <div class="tooltip-extension rune-extension"> <span class="d3-icon d3-icon-rune d3-icon-rune-large"> <span class="rune-b"></span> </span>
+                                  <h3 class="category ">猛憾衝擊</h3>
+                                  <p>刺穿可造成擊退，並且有 <span class="d3-color-green">65%</span> 機率使敵人昏迷，持續 <span class="d3-color-green">1.5</span> 秒。</p>
+                                  <p class="subtle">於<em>7</em>級解鎖</p>
+                                </div>
+                              </div>
+                            </div>
+                            <a id="active-skill-tooltip-5-link" href="/d3/zh/class/demon-hunter/active/impale" data-tooltip="#active-skill-tooltip-5"> <span class="d3-icon d3-icon-skill d3-icon-skill-42 " style="background-image: url('http://media.blizzard.com/d3/icons/skills/42/demonhunter_impale.png'); width: 42px; height: 42px;"> <span class="frame"></span> </span> <span class="skill-name"> 刺穿 <span class="rune-name"> 猛憾衝擊 </span> </span> </a> <span class="slot slot-4"></span> 
+                            <script type="text/javascript">
         //<![CDATA[
 								$(function() {
 									$("#active-skill-tooltip-5-link").data("tooltip-options", {className: "ui-tooltip-d3"});
 								});
         //]]>
-        </script>
-						</li>
-			</ul>
-	<span class="clear"><!-- --></span>
-
-			<ul class="passive-skills clear-after">
-					<li>
-							<a href="/d3/zh/class/demon-hunter/passive/archery">
-								<span class="passive-icon">
-									<img src="http://media.blizzard.com/d3/icons/skills/42/demonhunter_passive_archery.png" style="width:32px; height:32px" />
-								</span>
-								<span class="skill-name">箭術專精</span>
-							</a>
-					</li>
-					<li>
-							<a href="/d3/zh/class/demon-hunter/passive/vengeance">
-								<span class="passive-icon">
-									<img src="http://media.blizzard.com/d3/icons/skills/42/demonhunter_passive_vengeance.png" style="width:32px; height:32px" />
-								</span>
-								<span class="skill-name">復仇心切</span>
-							</a>
-					</li>
-					<li>
-							<a href="/d3/zh/class/demon-hunter/passive/perfectionist">
-								<span class="passive-icon">
-									<img src="http://media.blizzard.com/d3/icons/skills/42/demonhunter_passive_perfectionist.png" style="width:32px; height:32px" />
-								</span>
-								<span class="skill-name">完美主義者</span>
-							</a>
-					</li>
-			</ul>
-	<span class="clear"><!-- --></span>
-		</div>
-        </div>
-    </div>
-
-
-    <div class="page-section attributes">
-            <div class="section-header ">
-                	<h3 class="category ">屬性</h3>
-
-
-            </div>
-
-        <div class="section-body">
-
-    <div id="tooltip-strength-hero" style="display: none;">
-		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">力量：<span class="d3-color-green"><span class="value">${strength}</span></span></span><br /> 野蠻人的主要屬性。<br /> 使野蠻人的所有傷害提高 <span class="d3-color-green"><span class="value">270.00%</span></span>。<br /> 使護甲值提高 <span class="d3-color-green"><span class="value">${strength}</span></span> 點。</p>
-		</div>
-    </div>
-    <div id="tooltip-dexterity-hero" style="display: none;">
-		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">敏捷：<span class="d3-color-green"><span class="value">${dexterity}</span></span></span><br /> 狩魔獵人和武僧的主要屬性。<br /> 使狩魔獵人和武僧的所有傷害提高 <span class="d3-color-green"><span class="value">1800.00%</span></span>。<br /> 使閃躲機率提高 <span class="d3-color-green"><span class="value">37.52%</span></span>。</p>
-		</div>
-    </div>
-    <div id="tooltip-intelligence-hero" style="display: none;">
-		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">智力：<span class="d3-color-green"><span class="value">${intelligence}</span></span></span><br /> 巫醫和秘術師的主要屬性。<br /> 使巫醫和秘術師的所有傷害提高 <span class="d3-color-green"><span class="value">240.00%</span></span>。<br /> 使抗性提高 <span class="d3-color-green"><span class="value">20.0</span></span> 點。</p>
-		</div>
-    </div>
-    <div id="tooltip-vitality-hero" style="display: none;">
-		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">體能：<span class="d3-color-green"><span class="value">${vitality}</span></span></span><br /> 提高生命值，使你承受更多傷害才會死亡。<br /> 每一點體能可使生命值提高 <span class="d3-color-green"><span class="value">35</span></span> 點。</p>
-		</div>
-    </div>
-    <div id="tooltip-armor-hero" style="display: none;">
-		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">護甲值：<span class="d3-color-green"><span class="value">3744</span></span></span><br /> 使同等級敵人對你造成的所有傷害降低 <span class="d3-color-green"><span class="value">55.52%</span></span>。</p>
-		</div>
-    </div>
-    <div id="tooltip-dps-hero" style="display: none;">
-		<div class="profile-tooltip">
-			對敵人造成的每秒平均傷害值。 這個數值會受到你的武器、人物屬性、攻擊速度、爆擊機率、 被動技能，以及雙持攻擊速度的影響。
-		</div>
-    </div>
-    <div id="tooltip-life-hero" style="display: none;">
-		<div class="profile-tooltip">
-			<p><span class="d3-color-gold">生命值上限：<span class="d3-color-green"><span class="value">25086</span></span></span><br /> 失去所有生命值即會死亡。<br /> 生命值可透過體能屬性、物品，以及技能效果提高。</p>
-		</div>
-    </div>
-
-			<div id="tooltip-maxPrimaryResource-hero" style="display: none;">
-				<!--<div class="profile-tooltip">
+        </script> 
+                          </li>
+                        </ul>
+                        <span class="clear"><!-- --></span>
+                        <ul class="passive-skills clear-after">
+                          <li> <a href="/d3/zh/class/demon-hunter/passive/archery"> <span class="passive-icon"> <img src="http://media.blizzard.com/d3/icons/skills/42/demonhunter_passive_archery.png" style="width:32px; height:32px" /> </span> <span class="skill-name">箭術專精</span> </a> </li>
+                          <li> <a href="/d3/zh/class/demon-hunter/passive/vengeance"> <span class="passive-icon"> <img src="http://media.blizzard.com/d3/icons/skills/42/demonhunter_passive_vengeance.png" style="width:32px; height:32px" /> </span> <span class="skill-name">復仇心切</span> </a> </li>
+                          <li> <a href="/d3/zh/class/demon-hunter/passive/perfectionist"> <span class="passive-icon"> <img src="http://media.blizzard.com/d3/icons/skills/42/demonhunter_passive_perfectionist.png" style="width:32px; height:32px" /> </span> <span class="skill-name">完美主義者</span> </a> </li>
+                        </ul>
+                        <span class="clear"><!-- --></span> </div>
+                    </div>
+                  </div>
+                  <div class="page-section attributes">
+                    <div class="section-header ">
+                      <h3 class="category ">屬性</h3>
+                    </div>
+                    <div class="section-body">
+                      <div id="tooltip-strength-hero" style="display: none;">
+                        <div class="profile-tooltip">
+                          <p><span class="d3-color-gold">力量：<span class="d3-color-green"><span class="value">${strength}</span></span></span><br />
+                            野蠻人的主要屬性。<br />
+                            使野蠻人的所有傷害提高 <span class="d3-color-green"><span class="value">270.00%</span></span>。<br />
+                            使護甲值提高 <span class="d3-color-green"><span class="value">${strength}</span></span> 點。</p>
+                        </div>
+                      </div>
+                      <div id="tooltip-dexterity-hero" style="display: none;">
+                        <div class="profile-tooltip">
+                          <p><span class="d3-color-gold">敏捷：<span class="d3-color-green"><span class="value">${dexterity}</span></span></span><br />
+                            狩魔獵人和武僧的主要屬性。<br />
+                            使狩魔獵人和武僧的所有傷害提高 <span class="d3-color-green"><span class="value">1800.00%</span></span>。<br />
+                            使閃躲機率提高 <span class="d3-color-green"><span class="value">37.52%</span></span>。</p>
+                        </div>
+                      </div>
+                      <div id="tooltip-intelligence-hero" style="display: none;">
+                        <div class="profile-tooltip">
+                          <p><span class="d3-color-gold">智力：<span class="d3-color-green"><span class="value">${intelligence}</span></span></span><br />
+                            巫醫和秘術師的主要屬性。<br />
+                            使巫醫和秘術師的所有傷害提高 <span class="d3-color-green"><span class="value">240.00%</span></span>。<br />
+                            使抗性提高 <span class="d3-color-green"><span class="value">20.0</span></span> 點。</p>
+                        </div>
+                      </div>
+                      <div id="tooltip-vitality-hero" style="display: none;">
+                        <div class="profile-tooltip">
+                          <p><span class="d3-color-gold">體能：<span class="d3-color-green"><span class="value">${vitality}</span></span></span><br />
+                            提高生命值，使你承受更多傷害才會死亡。<br />
+                            每一點體能可使生命值提高 <span class="d3-color-green"><span class="value">35</span></span> 點。</p>
+                        </div>
+                      </div>
+                      <div id="tooltip-armor-hero" style="display: none;">
+                        <div class="profile-tooltip">
+                          <p><span class="d3-color-gold">護甲值：<span class="d3-color-green"><span class="value">3744</span></span></span><br />
+                            使同等級敵人對你造成的所有傷害降低 <span class="d3-color-green"><span class="value">55.52%</span></span>。</p>
+                        </div>
+                      </div>
+                      <div id="tooltip-dps-hero" style="display: none;">
+                        <div class="profile-tooltip"> 對敵人造成的每秒平均傷害值。 這個數值會受到你的武器、人物屬性、攻擊速度、爆擊機率、 被動技能，以及雙持攻擊速度的影響。 </div>
+                      </div>
+                      <div id="tooltip-life-hero" style="display: none;">
+                        <div class="profile-tooltip">
+                          <p><span class="d3-color-gold">生命值上限：<span class="d3-color-green"><span class="value">25086</span></span></span><br />
+                            失去所有生命值即會死亡。<br />
+                            生命值可透過體能屬性、物品，以及技能效果提高。</p>
+                        </div>
+                      </div>
+                      <div id="tooltip-maxPrimaryResource-hero" style="display: none;"> 
+                        <!--<div class="profile-tooltip">
 					<p><span class="d3-color-gold">憎恨：<span class="value">150/150</span></span><br />恢復迅速的能量，可供狩魔獵人施展攻擊技能。</p>
 					<p><span class="d3-color-gold">戒律：<span class="value">30/30</span></span><br />恢復緩慢的能量，可供狩魔獵人施展戰術類技能。</p>
-				</div>-->
-		    </div>
-
-
-		<ul class="attributes-core">
-				<li data-tooltip="#tooltip-strength-hero" class="tip">
-					<span class="label">力量</span>
-					<span class="value">${strength}</span>
-				</li>
-				<li data-tooltip="#tooltip-dexterity-hero" class="tip">
-					<span class="label">敏捷</span>
-					<span class="value">${dexterity}</span>
-				</li>
-				<li data-tooltip="#tooltip-intelligence-hero" class="tip">
-					<span class="label">智力</span>
-					<span class="value">${intelligence}</span>
-				</li>
-				<li data-tooltip="#tooltip-vitality-hero" class="tip">
-					<span class="label">體能</span>
-					<span class="value">${vitality}</span>
-				</li>
-			<li class="clear"></li>
-		</ul>
-
-		<ul class="attributes-core secondary">
-			<li data-tooltip="#tooltip-armor-hero" class="tip">
-				<span class="label">護甲值</span>
-				<span class="value">${armor}</span>
-			</li>
-
-			<li data-tooltip="#tooltip-dps-hero" class="tip">
-				<span class="label">傷害</span>
-				<span class="value">${damage}</span>
-			</li>
-			<li class="clear"></li>
-		</ul>
-
-		<ul class="resources">
-				<li class="resource tip" data-tooltip="#tooltip-maxPrimaryResource-hero">
-					<span class="resource-icon">
-						<span class="value">????</span>
-					</span>
-					<span class="label-wrapper">
-						<span class="label"></span>
-					</span>
-				</li>
-
-
-			<li class="resource tip" data-tooltip="#tooltip-life-hero">
-				<span class="resource-icon resource-life">
-					<span class="value">${life}</span>
-				</span>
-				<span class="label-wrapper"><span class="label">生命值</span></span>
-			</li>
-		</ul>
-
-        </div>
-    </div>
-    <div class="page-section attributes">
-            <div class="section-header ">
-                	<h3 class="category ">屬性2</h3>
-
-
-            </div>
-
-        <div class="section-body">
-
-   
-
-			
-
-
-		<ul class="attributes-core">
-                <li  class="tip"><span class="label">伤害减免</span><span class="value">${damageReduction}</span>
-				</li>
-				<li  class="tip"><span class="label">物理抗性</span><span class="value">${physicalResist}</span>
-				</li>
-				<li  class="tip"><span class="label">冰寒抗性</span><span class="value">${coldResist}</span>
-				</li>
-				<li  class="tip"><span class="label">火焰抗性</span><span class="value">${fireResist}</span>
-				</li>
-				<li  class="tip"><span class="label">电击抗性</span><span class="value">${lightningResist}</span>
-				</li>
-                <li  class="tip"><span class="label">毒素抗性</span><span class="value">${poisonResist}</span>
-				</li>
-                <li  class="tip"><span class="label">秘法抗性</span><span class="value">${arcaneResist}</span>
-				</li>
-			<li class="clear"></li>
-		</ul>
-
-		<ul class="attributes-core secondary">
-			<!--<li data-tooltip="#tooltip-armor-hero" class="tip">
+				</div>--> 
+                      </div>
+                      <ul class="attributes-core">
+                        <li data-tooltip="#tooltip-strength-hero" class="tip"> <span class="label">力量</span> <span class="value">${strength}</span> </li>
+                        <li data-tooltip="#tooltip-dexterity-hero" class="tip"> <span class="label">敏捷</span> <span class="value">${dexterity}</span> </li>
+                        <li data-tooltip="#tooltip-intelligence-hero" class="tip"> <span class="label">智力</span> <span class="value">${intelligence}</span> </li>
+                        <li data-tooltip="#tooltip-vitality-hero" class="tip"> <span class="label">體能</span> <span class="value">${vitality}</span> </li>
+                        <li class="clear"></li>
+                      </ul>
+                      <ul class="attributes-core secondary">
+                        <li data-tooltip="#tooltip-armor-hero" class="tip"> <span class="label">護甲值</span> <span class="value">${armor}</span> </li>
+                        <li data-tooltip="#tooltip-dps-hero" class="tip"> <span class="label">傷害</span> <span class="value">${damage}</span> </li>
+                        <li class="clear"></li>
+                      </ul>
+                      <ul class="resources">
+                        <li class="resource tip" data-tooltip="#tooltip-maxPrimaryResource-hero"> <span class="resource-icon"> <span class="value">????</span> </span> <span class="label-wrapper"> <span class="label"></span> </span> </li>
+                        <li class="resource tip" data-tooltip="#tooltip-life-hero"> <span class="resource-icon resource-life"> <span class="value">${life}</span> </span> <span class="label-wrapper"><span class="label">生命值</span></span> </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="page-section attributes">
+                    <div class="section-header ">
+                      <h3 class="category ">屬性2</h3>
+                    </div>
+                    <div class="section-body">
+                      <ul class="attributes-core">
+                        <li  class="tip"><span class="label">伤害减免</span><span class="value">${damageReduction}</span> </li>
+                        <li  class="tip"><span class="label">物理抗性</span><span class="value">${physicalResist}</span> </li>
+                        <li  class="tip"><span class="label">冰寒抗性</span><span class="value">${coldResist}</span> </li>
+                        <li  class="tip"><span class="label">火焰抗性</span><span class="value">${fireResist}</span> </li>
+                        <li  class="tip"><span class="label">电击抗性</span><span class="value">${lightningResist}</span> </li>
+                        <li  class="tip"><span class="label">毒素抗性</span><span class="value">${poisonResist}</span> </li>
+                        <li  class="tip"><span class="label">秘法抗性</span><span class="value">${arcaneResist}</span> </li>
+                        <li class="clear"></li>
+                      </ul>
+                      <ul class="attributes-core secondary">
+                        <!--<li data-tooltip="#tooltip-armor-hero" class="tip">
 				<span class="label">伤害加成</span>
 				<span class="value">${damageIncrease}</span>
 			</li>-->
-
-			<li data-tooltip="#tooltip-dps-hero" class="tip">
-				<span class="label">暴率</span>
-				<span class="value">${critChance}</span>
-			</li>
-			<li class="clear"></li>
-		</ul>
-
-		
-
-        </div>
-    </div>
-    <div class="page-section attributes" style="margin-right:0">
-            <div class="section-header ">
-                	<h3 class="category ">屬性3</h3>
-
-
+                        
+                        <li data-tooltip="#tooltip-dps-hero" class="tip"> <span class="label">暴率</span> <span class="value">${critChance}</span> </li>
+                        <li class="clear"></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="page-section attributes" style="margin-right:0">
+                    <div class="section-header ">
+                      <h3 class="category ">屬性3</h3>
+                    </div>
+                    <div class="section-body">
+                      <ul class="attributes-core">
+                        <li data-tooltip=" class="tip"><span class="label">精英怪击杀总数</span><span class="value">${elites}</span> </li>
+                        <li data-tooltip="" class="tip"><span class="label" style="width:70px">牺牲时间</span><span class="value" style="width:164px;">${time}</span></li>
+                        <li class="clear"></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <span class="clear"><!-- --></span> </div>
+                <div class="page-section progression" style="display:none;"> </div>
+                <p class="last-updated">ver 0.1 beta<!--最近更新於 2013-1-16 12:11 上午 CST--></p>
+              </div>
             </div>
-
-        <div class="section-body">
-
-   
-
-
-		<ul class="attributes-core">
-                <li data-tooltip=" class="tip"><span class="label">精英怪击杀总数</span><span class="value">${elites}</span>
-				</li>
-				<li data-tooltip="" class="tip"><span class="label" style="width:70px">牺牲时间</span><span class="value" style="width:164px;">${time}</span></li>
-                <li class="clear"></li>
-		</ul>
-
-		
-
-        </div>
-    </div>
-	<span class="clear"><!-- --></span>
-			</div>
-
-    <div class="page-section progression" style="display:none;">
-           
-    </div>
-
-
-
-    
-
-			
-
-	
-	<p class="last-updated">ver 0.1 beta<!--最近更新於 2013-1-16 12:11 上午 CST--></p>
-		</div>
-	</div>
-		</div>
-
-        <script type="text/javascript">
+          </div>
+          <script type="text/javascript">
         //<![CDATA[
 			var MsgProfile = {
 				tooltip: {
@@ -1364,27 +1026,24 @@ function relinkTooltip(){
 				}
 			};
         //]]>
-        </script>
-		
-	</div>
-<span class="clear"><!-- --></span>
-<a href="javascript:;" class="chat-gem" id="chat-gem"></a>
-</div>
-</div>
-<div class="body-trail">
-<div style="padding:10px 10px 10px 10px">
-enter BattleTag：<input type='text' id='hero_code' value=''/>
-<input type="radio"  name="host_type" value="tw" checked/>tw
-<input type="radio"  name="host_type" value="us" />us
-<input type="radio"  name="host_type" value="eu" />eu
-<input type='button' value='get!' onclick='get_hero_data()'/>
-</div>
-
-<span class="clear"><!-- --></span>
-</div>
-</div>
-
-
+        </script> 
+        </div>
+        <span class="clear"><!-- --></span> <a href="javascript:;" class="chat-gem" id="chat-gem"></a> </div>
+    </div>
+    <div class="body-trail">
+      <div style="padding:10px 10px 10px 10px"> enter BattleTag：
+        <input type='text' id='hero_code' value=''/>
+        <input type="radio"  name="host_type" value="tw" checked/>
+        tw
+        <input type="radio"  name="host_type" value="us" />
+        us
+        <input type="radio"  name="host_type" value="eu" />
+        eu
+        <input type='button' value='get!' onclick='get_hero_data()'/>
+        <input type="button" value="copy discuz style" onclick="copy_discuz_style()"/>
+      </div>
+      <span class="clear"><!-- --></span> </div>
+  </div>
 </div>
 <script type="text/javascript">
 var profileSheetTpl = $('div.profile-sheet').html();
@@ -1392,8 +1051,15 @@ var profileSheetTpl = $('div.profile-sheet').html();
 var profileLowerTpl = $('div.profile-lower').html();;
 
 </script>
-
-
+<div class="appriseOuter" id="copy" style="position: absolute; left: 5px; top: 5px; display: none; background: white; width: 447px; height: 480px;">
+  <div style=""><div style="height:30px;line-height:30px;">复制内容</div>
+    <div class="">
+      <textarea style="width:95%;margin:5px;height:400px"></textarea>
+    </div>
+    <div style=" text-align:right;margin-right:20px;">
+      <input type="button" value="关闭" onclick="$('#copy').hide()"/>
+     </div>
+  </div>
+</div>
 </body>
 </html>
-
