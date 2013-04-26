@@ -573,7 +573,6 @@ function copy_discuz_style(){
 		var pos = ['head','torso','feet','hands','shoulders','legs','bracers','mainHand','offHand','waist','rightFinger','leftFinger','neck'];	
 		$.each(pos,function(idx,v){
 			  bbcode = bbcode.replace("${"+v+"}",getImage(items[v]));		
-			  console.log(bbcode);
 			});
 			
 		$("#copy textarea").val(bbcode);
